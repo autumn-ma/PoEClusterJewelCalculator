@@ -3,7 +3,7 @@
 import Calculator from "./Calculator";
 import TradeTemplates from "./TradeTemplates";
 
-const tradePathBase = "https://www.pathofexile.com/trade/search/Ancestor?q=";
+const tradePathBase = "https://www.pathofexile.com/trade/search/Allflame?q=";
 
 const App = () => {
     // Not working currently

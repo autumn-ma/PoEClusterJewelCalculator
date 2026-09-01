@@ -115,10 +115,32 @@ def add_trade_stats_data(trade_stat):
     elif label == "Enchant":
         wanted = ["Adds # Passive Skills", "Added Small Passive Skills grant: #"]
         enchant = {}
+        # The trade API used to expose "Added Small Passive Skills grant: #" as a single
+        # entry with an option list, but now returns one entry per option with ids like
+        # "enchant.stat_3948993189|12". Rebuild the old combined shape from those.
+        small_grant_prefix = "Added Small Passive Skills grant: "
+        small_grant_stat = None
+        small_grant_options = []
         for entry in trade_stat["entries"]:
             text = entry["text"]
             if text in wanted:
                 enchant[text] = entry
+            elif text.startswith(small_grant_prefix) and "|" in entry["id"]:
+                stat_id, option_id = entry["id"].split("|", 1)
+                small_grant_stat = stat_id
+                option_text = "\n".join(
+                    line[len(small_grant_prefix):] if line.startswith(small_grant_prefix) else line
+                    for line in text.split("\n")
+                )
+                small_grant_options.append({"id": int(option_id), "text": option_text})
+        if "Added Small Passive Skills grant: #" not in enchant and small_grant_stat is not None:
+            small_grant_options.sort(key=lambda o: o["id"])
+            enchant["Added Small Passive Skills grant: #"] = {
+                "id": small_grant_stat,
+                "text": "Added Small Passive Skills grant: #",
+                "type": "enchant",
+                "option": {"options": small_grant_options}
+            }
         trade_stats[label] = enchant
 
 def extract_passive_skill(passive_skill):
